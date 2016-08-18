@@ -27,7 +27,7 @@ enum class AREA{
 	FORESTDUNGEN1
 };
 
-AREA GameState = AREA::FOREST1;
+AREA AreaState = AREA::FOREST1;
 
 //Tile constants
 const int TOTAL_TILES = 5472; // 36, 38
@@ -1033,6 +1033,7 @@ void run(){
 			int eHp = 1;
 
 			SDL_Rect hitBox = { 0 };
+			bool forestArea1Chest = true;
 			SDL_Rect chest = { 160, 5920, 100, 100 };
 
 			int frame = 0;
@@ -1138,15 +1139,21 @@ void run(){
 					for (int i = 0; i < TOTAL_TILES; ++i)
 						tileSet[i]->render(camera);
 
-					//If the tile is on screen
-					if (checkCollision(camera, chest))
-					{
-						//Show the tile
-						gTileTexture.render(chest.x - camera.x, chest.y - camera.y, gRenderer, &TileClips[TILE_BOTTOMRIGHT]);
+					if (AreaState == AREA::FOREST1){
+						if (forestArea1Chest){
+							//If the tile is on screen
+							if (checkCollision(camera, chest))
+							{
+								//Show the tile
+								gTileTexture.render(chest.x - camera.x, chest.y - camera.y, gRenderer, &TileClips[TILE_BOTTOMRIGHT]);
+							}
+							if (checkCollision(chest, Player.collider)){
+								isOpeningChest = true; 
+								chestWeapon = genChestWeapon(1, 2);
+								forestArea1Chest = false;
+							}
+						}
 					}
-					if (checkCollision(chest, Player.collider))
-						isOpeningChest = true; chestWeapon = genChestWeapon(1, 2);
-
 					//Render objects
 					Player.render(frame, camera.x, camera.y);
 
