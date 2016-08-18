@@ -1,12 +1,5 @@
 
 // Using SDL, SDL_image, standard IO, strings, and file streams
-#include <SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
-#include <stdio.h>
-#include <string>
-#include <fstream>
-#include <iostream>
 #include "LTexture.h"
 #include "LTimer.h"
 #include "Player.h"
@@ -171,11 +164,12 @@ Weapon::Weapon(){
 	clip.h = 100;
 	clip.x = 0;
 	clip.y = 0;
+	damage = 0;
 }
 
-void Weapon::render(){
+void Weapon::render(int xPos, int yPos){
 	SDL_Rect* currentClip = &clip;
-	gWeaponTexture.render(0, 700, gRenderer, currentClip);
+	gWeaponTexture.render(xPos, yPos, gRenderer, currentClip);
 }
 
 Player::Player()
@@ -1003,6 +997,15 @@ void dungenEnemy(Enemy& enemy){
 
 }
 
+///Randomly generates a weapon
+Weapon genChestWeapon(int start, int end){
+	Weapon newWeapon;
+	int level = rand() % end + start;
+	newWeapon.clip.y = level * 100;
+	newWeapon.damage = level * 10;
+	return newWeapon;
+}
+
 void run(){
 	//Start up SDL and create window
 	if (!init())
@@ -1021,8 +1024,11 @@ void run(){
 
 			//The Player that will be moving around on the screen
 			Player Player;
+			Player.weapon.damage = 5;
 			Player.setPosY(5920);
 			Player.setPosX(81);
+
+			Weapon chestWeapon;
 
 			int eHp = 1;
 
@@ -1035,6 +1041,7 @@ void run(){
 			SDL_Rect camera = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 			Enemy enemy;
 
+			#pragma region buttons
 			///BattleEngineButtons
 			SDL_Rect weaponAtk = {
 				0,
@@ -1057,7 +1064,8 @@ void run(){
 				SCREEN_WIDTH,
 				SCREEN_HEIGHT
 			};
-
+			#pragma endregion
+			
 			//While application is running
 			while (!quit) {
 				//Handle events on queue
@@ -1070,7 +1078,7 @@ void run(){
 						///WeaponAtk
 						if (e.type == SDL_MOUSEBUTTONDOWN){
 							if (e.button.y > 600 && e.button.y < 700 && e.button.x < (SCREEN_WIDTH / 2)){
-								enemy.setCurrentHealth(enemy.getCurrentHealth() - 5);
+								enemy.setCurrentHealth(enemy.getCurrentHealth() - Player.weapon.damage);
 								std::cout << "Weapon Atk: 10 dmg" << std::endl;
 								std::cout << "ENEMY HP: " << enemy.getCurrentHealth() << std::endl;
 							}
@@ -1083,6 +1091,21 @@ void run(){
 								std::cout << "ENEMY HP: " << enemy.getCurrentHealth() << std::endl;
 							}
 
+						}
+					}
+					if (isOpeningChest){
+						///CHANGE
+						if (e.type == SDL_MOUSEBUTTONDOWN){
+							if (e.button.y > 600 && e.button.y < 700 && e.button.x < (SCREEN_WIDTH / 2)){
+								Player.weapon = chestWeapon;
+								isOpeningChest = false;
+							}
+						}
+						///LEAVE
+						if (e.type == SDL_MOUSEBUTTONDOWN){
+							if (e.button.y > 600 && e.button.y < 700 && e.button.x >(SCREEN_WIDTH / 2)){
+								isOpeningChest = false;
+							}
 						}
 					}
 					//Handle input for the Player
@@ -1122,7 +1145,7 @@ void run(){
 						gTileTexture.render(chest.x - camera.x, chest.y - camera.y, gRenderer, &TileClips[TILE_BOTTOMRIGHT]);
 					}
 					if (checkCollision(chest, Player.collider))
-						isOpeningChest = true;
+						isOpeningChest = true; chestWeapon = genChestWeapon(1, 2);
 
 					//Render objects
 					Player.render(frame, camera.x, camera.y);
@@ -1132,7 +1155,30 @@ void run(){
 					//Clear screen by setting the background color to white
 					SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
 					SDL_RenderClear(gRenderer);
-					Player.weapon.render();
+					Player.weapon.render(SCREEN_WIDTH / 3, SCREEN_HEIGHT / 2.5);
+					chestWeapon.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2.5);
+
+					//RENDER THE BUTTONS
+					SDL_Color textColor = { 255, 255, 255 };
+					SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
+					SDL_RenderFillRect(gRenderer, &weaponAtk);
+					gTextTexture.loadFromRenderedText("CHANGE", textColor, gRenderer, gFont);
+					//Render current frame
+					gTextTexture.render(125, 625, gRenderer);
+
+
+					SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, 0xFF);
+					SDL_RenderFillRect(gRenderer, &spellAtk);
+					gTextTexture.loadFromRenderedText("LEAVE", textColor, gRenderer, gFont);
+					//Render current frame
+					gTextTexture.render(625, 625, gRenderer);
+
+					std::string currentDamage = "PLAYER DAMAGE:" + std::to_string(Player.weapon.damage);
+					gTextTexture.loadFromRenderedText(currentDamage, textColor, gRenderer, gFont);
+					gTextTexture.render(125, 225, gRenderer);
+					std::string chestDamage = "DAMAGE:" + std::to_string(chestWeapon.damage);
+					gTextTexture.loadFromRenderedText(chestDamage, textColor, gRenderer, gFont);
+					gTextTexture.render(625, 225, gRenderer);
 
 				}
 				else if (fighting){
@@ -1153,10 +1199,9 @@ void run(){
 					}
 
 					enemy.render(camera.x, camera.y, SDL_Rect{ 0 });
-					SDL_Color textColor = { 255, 255, 255 };
-
 
 					//RENDER THE BUTTONS
+					SDL_Color textColor = { 255, 255, 255 };
 					SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
 					SDL_RenderFillRect(gRenderer, &weaponAtk);
 					gTextTexture.loadFromRenderedText("Weapon Attack", textColor, gRenderer, gFont);
@@ -1190,7 +1235,7 @@ void run(){
 					//Render current frame
 					gTextTexture.render(105, 765, gRenderer);
 
-					Player.weapon.render();
+					Player.weapon.render(0, 700);
 
 					if (enemy.atkTimer.getTicks() / 1000.f >= enemy.atkTime){
 						Player.setCurrentHealth(Player.getCurrentHealth() - enemy.damage);
