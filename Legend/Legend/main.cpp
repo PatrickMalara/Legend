@@ -102,7 +102,7 @@ bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player);
 
 //Sets tiles from tile map
 bool setTiles(Tile *tiles[]);
-void forestarea2(Tile *tiles[]);
+void loadForestArea2(Tile *tiles[]);
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -258,7 +258,7 @@ void Player::handleEvent(SDL_Event& e)
 		case SDLK_RIGHT: mVelX += Player_VEL; dir = 2; break;
 
 		case SDLK_1: mPosX = 80; mPosY = 1840; collider.x = mPosX; collider.y = mPosY; break;
-		case SDLK_f: forestarea2(tileSet); break;
+		case SDLK_f: loadForestArea2(tileSet); break;
 		case SDLK_2: fighting = !fighting; break;
 		case SDLK_3: weapon.clip.y += 100; break;
 		case SDLK_4: weapon.clip.y -= 100; break;
@@ -930,9 +930,7 @@ bool setTiles(Tile* tiles[])
 	return tilesLoaded;
 }
 
-void forestarea2(Tile* tiles[])
-{
-
+void loadForestArea2(Tile* tiles[]){
 	//The tile offsets
 	int x = 0, y = 0;
 
@@ -1033,8 +1031,11 @@ void run(){
 			int eHp = 1;
 
 			SDL_Rect hitBox = { 0 };
-			bool forestArea1Chest = true;
+			bool forestArea2Chest = true;
 			SDL_Rect chest = { 160, 5920, 100, 100 };
+
+
+			SDL_Rect forestArea1Exit1 = {5100, 40, 160, 20};
 
 			int frame = 0;
 
@@ -1042,7 +1043,7 @@ void run(){
 			SDL_Rect camera = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 			Enemy enemy;
 
-			#pragma region buttons
+			#pragma region The Buttons for the Fighting and Chest UI
 			///BattleEngineButtons
 			SDL_Rect weaponAtk = {
 				0,
@@ -1140,7 +1141,16 @@ void run(){
 						tileSet[i]->render(camera);
 
 					if (AreaState == AREA::FOREST1){
-						if (forestArea1Chest){
+						if (checkCollision(forestArea1Exit1, Player.collider)){
+							loadForestArea2(tileSet);
+							Player.setPosY(5920);
+							Player.setPosX(81);
+							AreaState = AREA::FOREST2;
+						}
+					}
+					else if (AreaState == AREA::FOREST2){
+
+						if (forestArea2Chest){
 							//If the tile is on screen
 							if (checkCollision(camera, chest))
 							{
@@ -1150,7 +1160,7 @@ void run(){
 							if (checkCollision(chest, Player.collider)){
 								isOpeningChest = true; 
 								chestWeapon = genChestWeapon(1, 2);
-								forestArea1Chest = false;
+								forestArea2Chest = false;
 							}
 						}
 					}
