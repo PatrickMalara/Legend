@@ -9,7 +9,7 @@ public:
 	Weapon();
 
 	//Shows the Player on the screen
-	void render();
+	void render(int xPos, int yPos);
 	SDL_Rect clip;
 
 	std::string name;
