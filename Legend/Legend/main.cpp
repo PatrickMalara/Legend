@@ -984,6 +984,60 @@ void loadForestArea2(Tile* tiles[]){
 	//Close the file
 	map.close();
 }
+void loadForestArea3(Tile* tiles[]){
+	//The tile offsets
+	int x = 0, y = 0;
+
+	//Open the map
+	std::ifstream map("ForestArea3.map");
+
+	//Initialize the tiles
+	for (int i = 0; i < TOTAL_TILES; ++i)
+	{
+		//Determines what kind of tile will be made
+		int tileType = -1;
+
+		//Read tile from map file
+		map >> tileType;
+
+		//If the was a problem in reading the map
+		if (map.fail())
+		{
+			//Stop loading map
+			printf("Error loading map: Unexpected end of file!\n");
+			break;
+		}
+
+		//If the number is a valid tile number
+		if ((tileType >= 0) && (tileType < TOTAL_TILE_SPRITES))
+		{
+			tiles[i] = new Tile(x, y, tileType);
+		}
+		//If we don't recognize the tile type
+		else
+		{
+			//Stop loading map
+			printf("Error loading map: Invalid tile type at %d!\n", i);
+			break;
+		}
+
+		//Move to next tile spot
+		x += TILE_WIDTH;
+
+		//If we've gone too far
+		if (x >= LEVEL_WIDTH)
+		{
+			//Move back
+			x = 0;
+
+			//Move to the next row
+			y += TILE_HEIGHT;
+		}
+	}
+
+	//Close the file
+	map.close();
+}
 
 void dungenEnemy(Enemy& enemy){
 	enemy.setCurrentHealth(100);
@@ -1036,6 +1090,8 @@ void run(){
 
 
 			SDL_Rect forestArea1Exit1 = {5100, 40, 160, 20};
+			SDL_Rect forestArea2Exit1 = {5420, 40, 320, 20 };
+
 
 			int frame = 0;
 
@@ -1151,6 +1207,12 @@ void run(){
 					else if (AreaState == AREA::FOREST2){
 
 						if (forestArea2Chest){
+							if (checkCollision(forestArea2Exit1, Player.collider)){
+								loadForestArea3(tileSet);
+								Player.setPosY(5920);
+								Player.setPosX(3520);
+								AreaState = AREA::FOREST3;
+							}
 							//If the tile is on screen
 							if (checkCollision(camera, chest))
 							{
