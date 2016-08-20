@@ -102,7 +102,7 @@ bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player);
 
 //Sets tiles from tile map
 bool setTiles(Tile *tiles[]);
-void loadForestArea2(Tile *tiles[]);
+void loadMap(std::string mapName, Tile *tiles[]);
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -258,7 +258,6 @@ void Player::handleEvent(SDL_Event& e)
 		case SDLK_RIGHT: mVelX += Player_VEL; dir = 2; break;
 
 		case SDLK_1: mPosX = 80; mPosY = 1840; collider.x = mPosX; collider.y = mPosY; break;
-		case SDLK_f: loadForestArea2(tileSet); break;
 		case SDLK_2: fighting = !fighting; break;
 		case SDLK_3: weapon.clip.y += 100; break;
 		case SDLK_4: weapon.clip.y -= 100; break;
@@ -1036,7 +1035,7 @@ void run(){
 			SDL_Rect forestArea1Exit1 = {5100, 40, 160, 20};
 			SDL_Rect forestArea2Exit1 = {5420, 40, 320, 20 };
 			SDL_Rect forestArea3Exit1 = { 0, 0, 0, 0 };	
-			SDL_Rect forestArea3Dungeon = { 0, 0, 0, 0 };
+			SDL_Rect forestArea3Dungeon = { 5680, 3440, 100, 100 };
 
 			int frame = 0;
 
@@ -1150,14 +1149,13 @@ void run(){
 						}
 					}
 					else if (AreaState == AREA::FOREST2){
-
+						if (checkCollision(forestArea2Exit1, Player.collider)){
+							loadMap("ForestArea3.map", tileSet);
+							Player.setPosY(5920);
+							Player.setPosX(3520);
+							AreaState = AREA::FOREST3;
+						}
 						if (forestArea2Chest){
-							if (checkCollision(forestArea2Exit1, Player.collider)){
-								loadMap("ForestArea3.map", tileSet);
-								Player.setPosY(5920);
-								Player.setPosX(3520);
-								AreaState = AREA::FOREST3;
-							}
 							//If the tile is on screen
 							if (checkCollision(camera, chest))
 							{
@@ -1169,6 +1167,14 @@ void run(){
 								chestWeapon = genChestWeapon(1, 2);
 								forestArea2Chest = false;
 							}
+						}
+					}
+					else if (AreaState == AREA::FOREST3){
+						if (checkCollision(forestArea3Dungeon, Player.collider)){
+							loadMap("ForestDungeon1.map", tileSet);
+							Player.setPosY(5920);
+							Player.setPosX(81);
+							AreaState = AREA::FORESTDUNGEON1;
 						}
 					}
 					//Render objects
