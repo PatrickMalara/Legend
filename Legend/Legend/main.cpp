@@ -1033,9 +1033,9 @@ void run(){
 
 
 			SDL_Rect forestArea1Exit1 = {5100, 40, 160, 20};
-			SDL_Rect forestArea2Exit1 = {5420, 40, 320, 20 };
+			SDL_Rect forestArea2Exit1 = {5240, 40, 320, 20 };
 			SDL_Rect forestArea3Exit1 = { 0, 0, 0, 0 };	
-			SDL_Rect forestArea3Dungeon = { 5680, 3440, 100, 100 };
+			SDL_Rect forestArea3Dungeon = { 5660, 3440, 100, 100 };
 
 			int frame = 0;
 
