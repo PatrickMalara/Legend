@@ -33,6 +33,7 @@ AREA AreaState = AREA::FOREST1;
 const int TOTAL_TILES = 5472; // 36, 38
 const int TOTAL_TILE_SPRITES = 12;
 const int TOTAL_ENEMIES = 5;
+const int TOTAL_BOSSES = 1;
 const int TILE_WIDTH = 80;
 const int TILE_HEIGHT = 80;
 
@@ -126,9 +127,11 @@ LTexture gSwordTexture;
 LTexture gTileTexture;
 LTexture gEnemyPortrait;
 LTexture gFightingBar;
+LTexture gEnemySprites;
 
 SDL_Rect TileClips[TOTAL_TILE_SPRITES];
 SDL_Rect EnemyPortraitsClips[TOTAL_ENEMIES];
+SDL_Rect EnemySpritesClips[TOTAL_BOSSES];
 
 const unsigned int SWORD_ANIMATION_FRAMES = 1;
 SDL_Rect SwordClipDown[2];
@@ -469,8 +472,18 @@ bool loadMedia(Tile* tiles[]) {
 		printf("Failed to load enemy Portrait texture!\n");
 		return false;
 	}
+	//Load the enemy Sprites
+	if (!gEnemySprites.loadFromFile("enemySprites.png", gRenderer)){
+		printf("Failed to load EnemySprites texture!\n");
+		return false;
+	}
 	else
 	{
+		EnemySpritesClips[0].x = 0;
+		EnemySpritesClips[0].y = 0;
+		EnemySpritesClips[0].w = 80;
+		EnemySpritesClips[0].h = 80;
+
 		EnemyPortraitsClips[0].x = 0;
 		EnemyPortraitsClips[0].y = 0;
 		EnemyPortraitsClips[0].w = 1000;
@@ -984,14 +997,15 @@ void loadMap(std::string mapName, Tile* tiles[]){
 	map.close();
 }
 
-void dungenEnemy(Enemy& enemy){
-	enemy.setCurrentHealth(100);
-	enemy.atkTime = 1;
-
-	//Do some like random generation
-	enemy.imageID = rand() % 5 + 0;
-	enemy.damage = rand() % 10 + 1;
-
+///Randomly generates an Enemy
+Enemy genEnemy(int start, int end){
+	Enemy newEnemy;
+	newEnemy.setCurrentHealth(100);
+	newEnemy.atkTime = 1;
+	int level = rand() % end + start;
+	newEnemy.imageID = level;
+	newEnemy.damage = level * 4;
+	return newEnemy;
 }
 
 ///Randomly generates a weapon
@@ -1028,9 +1042,13 @@ void run(){
 			Weapon chestWeapon;
 
 			SDL_Rect hitBox = { 0 };
+
 			bool forestArea2Chest = true;
 			SDL_Rect chest = { 160, 5920, 100, 100 };
-
+			
+			///ENEMY SPRITES
+			bool forestDungeon1Enemy = true;
+			SDL_Rect forestDungeon1EnemyCollider = { 2960, 3600, 80, 80 };
 
 			SDL_Rect forestArea1Exit1 = {5100, 40, 160, 20};
 			SDL_Rect forestArea2Exit1 = {5240, 40, 320, 20 };
@@ -1169,6 +1187,21 @@ void run(){
 							}
 						}
 					}
+					if (AreaState == AREA::FORESTDUNGEON1){
+						
+						if (forestDungeon1Enemy){
+							//If the tile is on screen
+							if (checkCollision(camera, forestDungeon1EnemyCollider))
+							{
+								//Show the tile
+								gEnemySprites.render(forestDungeon1EnemyCollider.x - camera.x, forestDungeon1EnemyCollider.y - camera.y, gRenderer, &EnemySpritesClips[0]);
+							}
+							if (checkCollision(forestDungeon1EnemyCollider, Player.collider)){
+								fighting = true;
+								enemy = genEnemy(6, 8);
+							}
+						}
+					}
 					else if (AreaState == AREA::FOREST3){
 						if (checkCollision(forestArea3Dungeon, Player.collider)){
 							loadMap("ForestDungeon1.map", tileSet);
@@ -1224,6 +1257,7 @@ void run(){
 							Player.setXp(0);
 						}
 						fighting = false;
+						forestDungeon1Enemy = false;
 						timer.start();
 						fightTime = rand() % 10 + 1;
 					}
@@ -1280,7 +1314,7 @@ void run(){
 
 				std::cout << timer.getTicks() / 1000.f << std::endl;
 				if (timer.getTicks() / 1000.f >= fightTime){
-					dungenEnemy(enemy);
+					enemy = genEnemy(0, 4);
 					enemy.atkTimer.start();
 					fighting = true; 
 					timer.stop();
