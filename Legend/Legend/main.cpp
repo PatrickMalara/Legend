@@ -1072,7 +1072,7 @@ void run(){
 			SDL_Rect forestArea2Exit1 = {5240, 40, 320, 20 };
 			SDL_Rect forestArea3Exit1 = { 0, 0, 0, 0 };	
 			SDL_Rect forestArea3Dungeon = { 5660, 3440, 100, 100 };
-			SDL_Rect forestArea3DungeonExit = { 81, 5940, 160, 40 };
+			SDL_Rect forestArea3DungeonExit = { 81, 5980, 160, 40 };
 
 
 			int frame = 0;
@@ -1191,7 +1191,6 @@ void run(){
 							loadMap("ForestArea3.map", tileSet);
 							Player.setPosY(5920);
 							Player.setPosX(3520);
-							forestDungeon1Enemy = true;
 							AreaState = AREA::FOREST3;
 						}
 						if (forestArea2Chest){
@@ -1209,13 +1208,13 @@ void run(){
 						}
 					}
 					else if (AreaState == AREA::FORESTDUNGEON1){
-						/*
+						
 						if (checkCollision(forestArea3DungeonExit, Player.collider)){
 							loadMap("ForestArea3.map", tileSet);
-							Player.setPosY(forestArea3Exit1.y);
-							Player.setPosX(forestArea3Exit1.x - 80);
+							Player.setPosY(forestArea3Dungeon.y);
+							Player.setPosX(forestArea3Dungeon.x - 80);
 							AreaState = AREA::FOREST3;
-						}*/
+						}
 						if (forestDungeon1Enemy){
 							//If the tile is on screen
 							if (checkCollision(camera, forestDungeon1EnemyCollider))
@@ -1236,6 +1235,7 @@ void run(){
 							loadMap("ForestDungeon1.map", tileSet);
 							Player.setPosY(5900);
 							Player.setPosX(81);
+							forestDungeon1Enemy = true;
 							AreaState = AREA::FORESTDUNGEON1;
 						}
 					}
