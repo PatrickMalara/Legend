@@ -1013,12 +1013,15 @@ void loadMap(std::string mapName, Tile* tiles[]){
 }
 
 ///Randomly generates an Enemy
-Enemy genEnemy(int start, int end){
+Enemy genEnemy(int start, int end, int bossId = NULL){
 	Enemy newEnemy;
 	newEnemy.setCurrentHealth(100);
 	newEnemy.atkTime = 1;
 	int level = rand() % end + start;
-	newEnemy.imageID = 7;
+	if (bossId != NULL)
+		newEnemy.imageID = bossId;
+	else
+		newEnemy.imageID = level;
 	newEnemy.damage = level * 4;
 	return newEnemy;
 }
@@ -1069,6 +1072,8 @@ void run(){
 			SDL_Rect forestArea2Exit1 = {5240, 40, 320, 20 };
 			SDL_Rect forestArea3Exit1 = { 0, 0, 0, 0 };	
 			SDL_Rect forestArea3Dungeon = { 5660, 3440, 100, 100 };
+			SDL_Rect forestArea3DungeonExit = { 81, 5940, 160, 40 };
+
 
 			int frame = 0;
 
@@ -1186,6 +1191,7 @@ void run(){
 							loadMap("ForestArea3.map", tileSet);
 							Player.setPosY(5920);
 							Player.setPosX(3520);
+							forestDungeon1Enemy = true;
 							AreaState = AREA::FOREST3;
 						}
 						if (forestArea2Chest){
@@ -1203,7 +1209,13 @@ void run(){
 						}
 					}
 					else if (AreaState == AREA::FORESTDUNGEON1){
-						
+						/*
+						if (checkCollision(forestArea3DungeonExit, Player.collider)){
+							loadMap("ForestArea3.map", tileSet);
+							Player.setPosY(forestArea3Exit1.y);
+							Player.setPosX(forestArea3Exit1.x - 80);
+							AreaState = AREA::FOREST3;
+						}*/
 						if (forestDungeon1Enemy){
 							//If the tile is on screen
 							if (checkCollision(camera, forestDungeon1EnemyCollider))
@@ -1213,7 +1225,8 @@ void run(){
 							}
 							if (checkCollision(forestDungeon1EnemyCollider, Player.collider)){
 								forestDungeon1Enemy = false;
-								enemy = genEnemy(7, 7);
+								enemy = genEnemy(7, 7, 7);
+								enemy.atkTimer.start();
 								fighting = true;
 							}
 						}
@@ -1221,7 +1234,7 @@ void run(){
 					else if (AreaState == AREA::FOREST3){
 						if (checkCollision(forestArea3Dungeon, Player.collider)){
 							loadMap("ForestDungeon1.map", tileSet);
-							Player.setPosY(5920);
+							Player.setPosY(5900);
 							Player.setPosX(81);
 							AreaState = AREA::FORESTDUNGEON1;
 						}
