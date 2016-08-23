@@ -32,7 +32,7 @@ AREA AreaState = AREA::FOREST1;
 //Tile constants
 const int TOTAL_TILES = 5472; // 36, 38
 const int TOTAL_TILE_SPRITES = 12;
-const int TOTAL_ENEMIES = 5;
+const int TOTAL_ENEMIES = 8;
 const int TOTAL_BOSSES = 1;
 const int TILE_WIDTH = 80;
 const int TILE_HEIGHT = 80;
@@ -508,6 +508,21 @@ bool loadMedia(Tile* tiles[]) {
 		EnemyPortraitsClips[4].y = 2400;
 		EnemyPortraitsClips[4].w = 1000;
 		EnemyPortraitsClips[4].h = 600;
+
+		EnemyPortraitsClips[5].x = 0;
+		EnemyPortraitsClips[5].y = 3000;
+		EnemyPortraitsClips[5].w = 1000;
+		EnemyPortraitsClips[5].h = 600;
+
+		EnemyPortraitsClips[6].x = 0;
+		EnemyPortraitsClips[6].y = 3600;
+		EnemyPortraitsClips[6].w = 1000;
+		EnemyPortraitsClips[6].h = 600;
+
+		EnemyPortraitsClips[7].x = 0;
+		EnemyPortraitsClips[7].y = 4200;
+		EnemyPortraitsClips[7].w = 1000;
+		EnemyPortraitsClips[7].h = 600;
 	}
 
 	//Open the font
@@ -1003,7 +1018,7 @@ Enemy genEnemy(int start, int end){
 	newEnemy.setCurrentHealth(100);
 	newEnemy.atkTime = 1;
 	int level = rand() % end + start;
-	newEnemy.imageID = level;
+	newEnemy.imageID = 7;
 	newEnemy.damage = level * 4;
 	return newEnemy;
 }
@@ -1187,7 +1202,7 @@ void run(){
 							}
 						}
 					}
-					if (AreaState == AREA::FORESTDUNGEON1){
+					else if (AreaState == AREA::FORESTDUNGEON1){
 						
 						if (forestDungeon1Enemy){
 							//If the tile is on screen
@@ -1197,8 +1212,9 @@ void run(){
 								gEnemySprites.render(forestDungeon1EnemyCollider.x - camera.x, forestDungeon1EnemyCollider.y - camera.y, gRenderer, &EnemySpritesClips[0]);
 							}
 							if (checkCollision(forestDungeon1EnemyCollider, Player.collider)){
+								forestDungeon1Enemy = false;
+								enemy = genEnemy(7, 7);
 								fighting = true;
-								enemy = genEnemy(6, 8);
 							}
 						}
 					}
