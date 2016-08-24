@@ -78,6 +78,7 @@ public:
 	void setCurrentHealth(int amt);
 
 	int imageID = 0;
+	bool isBoss = false;
 	int damage;
 
 private:
@@ -1018,8 +1019,10 @@ Enemy genEnemy(int start, int end, int bossId = NULL){
 	newEnemy.setCurrentHealth(100);
 	newEnemy.atkTime = 1;
 	int level = rand() % end + start;
-	if (bossId != NULL)
+	if (bossId != NULL){
+		newEnemy.isBoss = true;
 		newEnemy.imageID = bossId;
+	}
 	else
 		newEnemy.imageID = level;
 	newEnemy.damage = level * 4;
@@ -1202,7 +1205,7 @@ void run(){
 							}
 							if (checkCollision(chest, Player.collider)){
 								isOpeningChest = true; 
-								chestWeapon = genChestWeapon(1, 2);
+								chestWeapon = genChestWeapon(0, 2);
 								forestArea2Chest = false;
 							}
 						}
@@ -1285,6 +1288,8 @@ void run(){
 							Player.levelUp();
 							Player.setXp(0);
 						}
+						isOpeningChest = true;
+						chestWeapon = genChestWeapon(1, 2);
 						fighting = false;
 						forestDungeon1Enemy = false;
 						timer.start();
