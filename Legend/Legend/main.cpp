@@ -463,12 +463,12 @@ bool loadMedia(Tile* tiles[]) {
 		printf("Failed to load enemy Portrait texture!\n");
 		return false;
 	}
-	//Load the enemy Portaits
+	//Load the Weapon Textures
 	if (!gWeaponTexture.loadFromFile("weapons.png", gRenderer)){
 		printf("Failed to load Weapon texture!\n");
 		return false;
 	}
-	//Load the enemy Portaits
+	//Load the FightBar
 	if (!gFightingBar.loadFromFile("FightBarUI.png", gRenderer)){
 		printf("Failed to load enemy Portrait texture!\n");
 		return false;
@@ -814,7 +814,9 @@ bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player){
 		}
 
 		//If the tile is a wall type tile
-		if ((tiles[i]->getType() >= TILE_CENTER) && (tiles[i]->getType() <= TILE_TOPLEFT))
+		if (	(tiles[i]->getType() >= TILE_CENTER) &&
+			(tiles[i]->getType() <= TILE_TOPLEFT)
+			)
 		{
 			//If the collision box touches the wall tile
 			if (checkCollision(box, tiles[i]->getBox()))
@@ -1060,23 +1062,62 @@ void run(){
 			Player.setPosY(5920);
 			Player.setPosX(81);
 
-			Weapon chestWeapon;
+			Weapon chestWeapon;	//This is the weapon object that
+						//is just the pre loaded/cached 
+						//for whenever the player kills
+						//a monster. Then use genWeapon()
+						//as a way to make it seem like
+						//a new weapon was actually gener-
+						//ated.
 
 			SDL_Rect hitBox = { 0 };
 
 			bool forestArea2Chest = true;
-			SDL_Rect chest = { 160, 5920, 100, 100 };
-			
-			///ENEMY SPRITES
+			SDL_Rect chest = {
+				160,
+				5920,		
+				100,
+				100 
+			};
+#pragma region forestlevel Warp Collliders
 			bool forestDungeon1Enemy = true;
-			SDL_Rect forestDungeon1EnemyCollider = { 2960, 3600, 80, 80 };
-
-			SDL_Rect forestArea1Exit1 = {5100, 40, 160, 20};
-			SDL_Rect forestArea2Exit1 = {5240, 40, 320, 20 };
-			SDL_Rect forestArea3Exit1 = { 0, 0, 0, 0 };	
-			SDL_Rect forestArea3Dungeon = { 5660, 3440, 100, 100 };
-			SDL_Rect forestArea3DungeonExit = { 81, 5980, 160, 40 };
-
+			SDL_Rect forestDungeon1EnemyCollider = {
+				2960,
+				3600,
+				80,
+				80 
+			};
+			SDL_Rect forestArea1Exit1 = {
+				5100,		       	
+				40,
+				160, 	
+				20
+			};
+			SDL_Rect forestArea2Exit1 = { 
+				5240,
+				40,
+				320,
+				20 
+			};
+			SDL_Rect forestArea3Exit1 = {
+			       	0,
+			       	0, 
+				0,
+			       	0 
+			};	
+			SDL_Rect forestArea3Dungeon = { 
+				5660, 
+				3440, 
+				100, 
+				100 
+			};
+			SDL_Rect forestArea3DungeonExit = { 
+				81,
+			       	5980, 
+				160, 
+				40 
+			};
+#pragma endregion
 
 			int frame = 0;
 
@@ -1084,7 +1125,7 @@ void run(){
 			SDL_Rect camera = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 			Enemy enemy;
 
-			#pragma region The Buttons for the Fighting and Chest UI
+#pragma region The Buttons for the Fighting and Chest UI
 			///BattleEngineButtons
 			SDL_Rect weaponAtk = {
 				0,
@@ -1107,8 +1148,8 @@ void run(){
 				SCREEN_WIDTH,
 				SCREEN_HEIGHT
 			};
-			#pragma endregion
-			
+#pragma endregion			
+
 			//While application is running
 			while (!quit) {
 				//Handle events on queue
@@ -1296,7 +1337,11 @@ void run(){
 						fightTime = rand() % 10 + 1;
 					}
 
-					enemy.render(camera.x, camera.y, SDL_Rect{ 0 });
+					enemy.render(	//Rendering the enemy on the
+						camera.x,
+					       	camera.y, 
+						SDL_Rect{ 0 }
+					);
 
 					//RENDER THE BUTTONS
 					SDL_Color textColor = { 255, 255, 255 };
