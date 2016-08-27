@@ -324,23 +324,18 @@ void Player::move(Tile *tiles[], Player& Player)
 }
 
 void Player::render(int frame, int camPosX, int camPosY) {
-	//Render current frame
-	if (dir == 1){
-		SDL_Rect* currentClip = &SpriteClipsUp[frame / 6];
-		gPlayerTexture.render(mPosX - camPosX, mPosY - camPosY, gRenderer, currentClip);
-	}
-	else if (dir == 2){
-		SDL_Rect* currentClip = &SpriteClipsRight[frame / 6];
-		gPlayerTexture.render(mPosX - camPosX, mPosY - camPosY, gRenderer, currentClip);
-	}
-	else if (dir == 3){
-		SDL_Rect* currentClip = &SpriteClipsDown[frame / 6];
-		gPlayerTexture.render(mPosX - camPosX, mPosY - camPosY, gRenderer, currentClip);
-	}
-	else if (dir == 4) {
-		SDL_Rect* currentClip = &SpriteClipsLeft[frame / 6];
-		gPlayerTexture.render(mPosX - camPosX, mPosY - camPosY, gRenderer, currentClip);
-	}
+	//Render The Current Frame
+	SDL_Rect* currentClip = &SpriteClipsUp[frame / 6];
+	if (dir == 1)		SDL_Rect* currentClip = &SpriteClipsUp[frame / 6];
+	else if (dir == 2)	SDL_Rect* currentClip = &SpriteClipsRight[frame / 6];
+	else if (dir == 3)	SDL_Rect* currentClip = &SpriteClipsDown[frame / 6];
+	else if (dir == 4)	SDL_Rect* currentClip = &SpriteClipsLeft[frame / 6];
+	gPlayerTexture.render(
+			mPosX - camPosX,
+		       	mPosY - camPosY,
+		       	gRenderer, 
+			currentClip
+	);
 }
 
 int Player::getPosX(){ return mPosX; }
