@@ -88,23 +88,16 @@ private:
 	int eVelX, eVelY;
 };
 
-//Starts up SDL and creates window
-bool init();
-
-//Loads media
-bool loadMedia(Tile* tiles[] );
-
+#pragma region Function Protoypes
+bool init();	//Starts up SDL and Creates Window
+bool loadMedia(Tile* tiles[] );	//Loads Media
 //Frees media and shuts down SDL
-void close(Tile* tiles[]);
-
+void close(Tile* tiles[]); //Frees media and Shuts off SDL 
 bool checkCollision(SDL_Rect a, SDL_Rect b);
-
-//Checks collision box against set of tiles
-bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player);
-
-//Sets tiles from tile map
-bool setTiles(Tile *tiles[]);
-void loadMap(std::string mapName, Tile *tiles[]);
+bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player);	//Chesks collision box against tiles
+bool setTiles(Tile *tiles[]);	//Sets the tile map
+void loadMap(std::string mapName, Tile *tiles[]);	//Loads any map passed in arguments
+#pragma endregion
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -147,6 +140,28 @@ SDL_Rect SpriteClipsDown[WALKING_ANIMATION_FRAMES];
 SDL_Rect SpriteClipsLeft[WALKING_ANIMATION_FRAMES];
 SDL_Rect SpriteClipsUp[WALKING_ANIMATION_FRAMES];
 SDL_Rect SpriteClipsRight[WALKING_ANIMATION_FRAMES];
+
+#pragma region The Buttons for the Fighting and Chest UI
+SDL_Rect weaponAtk = {  // The Weapon Attack Button
+	0,
+	600,
+	SCREEN_WIDTH / 2,
+	100
+};
+SDL_Rect spellAtk = {   // The Spell Attack Button
+	SCREEN_WIDTH / 2,
+	600,
+	SCREEN_WIDTH / 2,
+	100
+};
+SDL_Rect openingChest = {	//ChestOpen
+	0,
+	0,
+	SCREEN_WIDTH,
+	SCREEN_HEIGHT
+};
+#pragma endregion
+
 
 LTimer timer;
 
@@ -1040,6 +1055,50 @@ Weapon genChestWeapon(int start, int end){
 	return newWeapon;
 }
 
+//This function will generate a simple weapon
+//that the player can either change to, or
+//just simply not
+void openingChest(Weapon& playerWeapon, Weapon& chestWeapon){
+	SDL_SetRenderDrawColor(	//Clear Screen By Filling It White
+		gRenderer,
+	       	0x00,
+	       	0x00,
+	       	0x00,
+	       	0xFF
+	);
+	SDL_RenderClear(gRenderer);
+	playerWeapon.render(	//Render The Player Weapon
+		SCREEN_WIDTH / 3, 
+		SCREEN_HEIGHT / 2.5
+	);
+	chestWeapon.render(	//Render the Randomly Generated Weapon
+		SCREEN_WIDTH / 2,
+	       	SCREEN_HEIGHT / 2.5
+	);
+
+	//RENDER THE BUTTONS
+	SDL_Color textColor = { 255, 255, 255 };
+	SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
+	SDL_RenderFillRect(gRenderer, &weaponAtk);
+	gTextTexture.loadFromRenderedText("CHANGE", textColor, gRenderer, gFont);
+	//Render current frame
+	gTextTexture.render(125, 625, gRenderer);
+
+
+	SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, 0xFF);
+	SDL_RenderFillRect(gRenderer, &spellAtk);
+	gTextTexture.loadFromRenderedText("LEAVE", textColor, gRenderer, gFont);
+	//Render current frame
+	gTextTexture.render(625, 625, gRenderer);
+
+	std::string currentDamage = "PLAYER DAMAGE:" + std::to_string(Player.weapon.damage);
+	gTextTexture.loadFromRenderedText(currentDamage, textColor, gRenderer, gFont);
+	gTextTexture.render(125, 225, gRenderer);
+	std::string chestDamage = "DAMAGE:" + std::to_string(chestWeapon.damage);
+	gTextTexture.loadFromRenderedText(chestDamage, textColor, gRenderer, gFont);
+	gTextTexture.render(625, 225, gRenderer);	
+}
+
 void run(){
 	if (!init())	//Start up SDL and create the window
 		printf("Failed to initialize!\n");
@@ -1120,28 +1179,7 @@ void run(){
 				SCREEN_WIDTH, 
 				SCREEN_HEIGHT 
 			};
-			Enemy enemy;
-
-#pragma region The Buttons for the Fighting and Chest UI
-			SDL_Rect weaponAtk = {	// The Weapon Attack Button
-				0,
-				600,
-				SCREEN_WIDTH / 2,
-				100
-			};
-			SDL_Rect spellAtk = {	// The Spell Attack Button
-				SCREEN_WIDTH / 2,
-				600,
-				SCREEN_WIDTH / 2,
-				100
-			};
-			SDL_Rect openingChest = {	//ChestOpen
-				0,
-				0,
-				SCREEN_WIDTH,
-				SCREEN_HEIGHT
-			};
-#pragma endregion			
+			Enemy enemy;		
 
 			//While application is running
 			while (!quit) {
@@ -1281,33 +1319,7 @@ void run(){
 
 				}
 				else if (isOpeningChest){
-					//Clear screen by setting the background color to white
-					SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
-					SDL_RenderClear(gRenderer);
-					Player.weapon.render(SCREEN_WIDTH / 3, SCREEN_HEIGHT / 2.5);
-					chestWeapon.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2.5);
-
-					//RENDER THE BUTTONS
-					SDL_Color textColor = { 255, 255, 255 };
-					SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
-					SDL_RenderFillRect(gRenderer, &weaponAtk);
-					gTextTexture.loadFromRenderedText("CHANGE", textColor, gRenderer, gFont);
-					//Render current frame
-					gTextTexture.render(125, 625, gRenderer);
-
-
-					SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, 0xFF);
-					SDL_RenderFillRect(gRenderer, &spellAtk);
-					gTextTexture.loadFromRenderedText("LEAVE", textColor, gRenderer, gFont);
-					//Render current frame
-					gTextTexture.render(625, 625, gRenderer);
-
-					std::string currentDamage = "PLAYER DAMAGE:" + std::to_string(Player.weapon.damage);
-					gTextTexture.loadFromRenderedText(currentDamage, textColor, gRenderer, gFont);
-					gTextTexture.render(125, 225, gRenderer);
-					std::string chestDamage = "DAMAGE:" + std::to_string(chestWeapon.damage);
-					gTextTexture.loadFromRenderedText(chestDamage, textColor, gRenderer, gFont);
-					gTextTexture.render(625, 225, gRenderer);
+					
 
 				}
 				else if (fighting){
