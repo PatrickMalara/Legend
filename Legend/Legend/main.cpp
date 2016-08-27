@@ -1041,23 +1041,17 @@ Weapon genChestWeapon(int start, int end){
 }
 
 void run(){
-	//Start up SDL and create window
-	if (!init())
+	if (!init())	//Start up SDL and create the window
 		printf("Failed to initialize!\n");
 	else {
-
-		//Load media
-		if (!loadMedia(tileSet))
+		if (!loadMedia(tileSet))	//Load Meadia
 			printf("Failed to load media!\n");
 		else {
-			//Main loop flag
-			bool quit = false;
-
-			//Event handler
-			SDL_Event e;
-
-			//The Player that will be moving around on the screen
-			Player Player;
+			bool quit = false;	//Game Loop Flag
+			SDL_Event e;	//Event Handler
+			
+			Player Player;	//The Player that will be moving around
+					//on the screen
 			Player.weapon.damage = 5;
 			Player.setPosY(5920);
 			Player.setPosX(81);
@@ -1120,29 +1114,28 @@ void run(){
 #pragma endregion
 
 			int frame = 0;
-
-			//The camera area
-			SDL_Rect camera = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+			SDL_Rect camera = {	//The Camera Area 
+				0,
+			       	0, 
+				SCREEN_WIDTH, 
+				SCREEN_HEIGHT 
+			};
 			Enemy enemy;
 
 #pragma region The Buttons for the Fighting and Chest UI
-			///BattleEngineButtons
-			SDL_Rect weaponAtk = {
+			SDL_Rect weaponAtk = {	// The Weapon Attack Button
 				0,
 				600,
 				SCREEN_WIDTH / 2,
 				100
 			};
-
-			SDL_Rect spellAtk = {
-					SCREEN_WIDTH / 2,
-					600,
-					SCREEN_WIDTH / 2,
-					100
+			SDL_Rect spellAtk = {	// The Spell Attack Button
+				SCREEN_WIDTH / 2,
+				600,
+				SCREEN_WIDTH / 2,
+				100
 			};
-
-			///ChestOpen
-			SDL_Rect openingChest = {
+			SDL_Rect openingChest = {	//ChestOpen
 				0,
 				0,
 				SCREEN_WIDTH,
