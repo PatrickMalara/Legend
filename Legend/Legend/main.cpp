@@ -1110,7 +1110,7 @@ void openingChest(Weapon& playerWeapon, Weapon& chestWeapon){
  *	the player is able to fight randomly
  *	generated enimies
 */
-void fighting(Player& Player, Enemy& Enemy){
+void fight(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon, bool forestDungeon1Enemy){
 	//Clear screen by setting the background color to white
 	SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(gRenderer);
@@ -1124,7 +1124,8 @@ void fighting(Player& Player, Enemy& Enemy){
 		isOpeningChest = true;
 		chestWeapon = genChestWeapon(1, 2);
 		fighting = false;
-		forestDungeon1Enemy = false;
+		if (enemy.isBoss == true)
+			forestDungeon1Enemy = false;	//TODO: Make The Enemies Be An Array of Bools
 		timer.start();
 		fightTime = rand() % 10 + 1;
 	}
@@ -1165,18 +1166,30 @@ void fighting(Player& Player, Enemy& Enemy){
 	gTextTexture.loadFromRenderedText(enemyHealth, textColor, gRenderer, gFont);
 	//Render current frame
 	gTextTexture.render(105, 705, gRenderer);
-	std::string playerHealth = "Player HP:" + std::to_string(Player.getCurrentHealth()) + " | Lvl: " + std::to_string(Player.getLevel()) + " XP: " + std::to_string(Player.getXp()) + "/" + std::to_string(Player.getLevel() * 80);
+	std::string playerHealth =	"Player HP:" +
+	       				std::to_string(Player.getCurrentHealth()) +
+				       	" | Lvl: " + 
+					std::to_string(Player.getLevel()) + 
+					" XP: " + 
+					std::to_string(Player.getXp()) +
+				       	"/" + 
+					std::to_string(Player.getLevel() * 80);
 	gTextTexture.loadFromRenderedText(playerHealth, textColor, gRenderer, gFont);
-	//Render current frame
-	gTextTexture.render(105, 765, gRenderer);
-
-	Player.weapon.render(0, 700);
-
+	gTextTexture.render(105, 765, gRenderer);	//Render the Text
+	Player.weapon.render(0, 700);	//Render the Player's Weapon
 	if (enemy.atkTimer.getTicks() / 1000.f >= enemy.atkTime){
 		Player.setCurrentHealth(Player.getCurrentHealth() - enemy.damage);
 		enemy.atkTimer.stop();
 		enemy.atkTimer.start();
 	}	
+}
+
+/* World
+ * 	This function is where the player can
+ * 	move around and interact with the world
+*/
+void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon){
+	
 }
 
 /* Run
@@ -1406,74 +1419,7 @@ void run(){
 					openingChest(Player.weapon, chestWeapon);
 				}
 				else if (fighting){
-
-					//Clear screen by setting the background color to white
-					SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
-					SDL_RenderClear(gRenderer);
-
-					if (enemy.getCurrentHealth() <= 0){
-						Player.setXp(Player.getXp() + 10);
-						if (Player.getXp() >= (Player.getLevel() * 80)){
-							Player.levelUp();
-							Player.setXp(0);
-						}
-						isOpeningChest = true;
-						chestWeapon = genChestWeapon(1, 2);
-						fighting = false;
-						forestDungeon1Enemy = false;
-						timer.start();
-						fightTime = rand() % 10 + 1;
-					}
-
-					enemy.render(	//Rendering the enemy on the
-						camera.x,
-					       	camera.y, 
-						SDL_Rect{ 0 }
-					);
-
-					//RENDER THE BUTTONS
-					SDL_Color textColor = { 255, 255, 255 };
-					SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
-					SDL_RenderFillRect(gRenderer, &weaponAtk);
-					gTextTexture.loadFromRenderedText("Weapon Attack", textColor, gRenderer, gFont);
-					//Render current frame
-					gTextTexture.render(125, 625, gRenderer);
-
-
-					SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, 0xFF);
-					SDL_RenderFillRect(gRenderer, &spellAtk);
-					gTextTexture.loadFromRenderedText("Spell Attack", textColor, gRenderer, gFont);
-					//Render current frame
-					gTextTexture.render(625, 625, gRenderer);
-
-
-					SDL_Rect fightBar;
-					fightBar.h = gFightingBar.getHeight();
-					fightBar.w = gFightingBar.getWidth();
-					fightBar.x = 0;
-					fightBar.y = 0;
-					SDL_Rect* currentClip = &fightBar;
-					gFightingBar.render(0, 700, gRenderer, currentClip);
-
-
-					///Render / Load as little as possible
-					std::string enemyHealth = "Enemy HP:" + std::to_string(enemy.getCurrentHealth());
-					gTextTexture.loadFromRenderedText(enemyHealth, textColor, gRenderer, gFont);
-					//Render current frame
-					gTextTexture.render(105, 705, gRenderer);
-					std::string playerHealth = "Player HP:" + std::to_string(Player.getCurrentHealth()) + " | Lvl: " + std::to_string(Player.getLevel()) + " XP: " + std::to_string(Player.getXp()) + "/" + std::to_string(Player.getLevel() * 80);
-					gTextTexture.loadFromRenderedText(playerHealth, textColor, gRenderer, gFont);
-					//Render current frame
-					gTextTexture.render(105, 765, gRenderer);
-
-					Player.weapon.render(0, 700);
-
-					if (enemy.atkTimer.getTicks() / 1000.f >= enemy.atkTime){
-						Player.setCurrentHealth(Player.getCurrentHealth() - enemy.damage);
-						enemy.atkTimer.stop();
-						enemy.atkTimer.start();
-					}
-
+					fight(Player, enemy, camera, chestWeapon, forestDungeon1Enemy);
 				}
 
 				//Update screen
