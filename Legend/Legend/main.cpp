@@ -154,7 +154,7 @@ SDL_Rect spellAtk = {   // The Spell Attack Button
 	SCREEN_WIDTH / 2,
 	100
 };
-SDL_Rect openingChest = {	//ChestOpen
+SDL_Rect openingChestScreen = {	//ChestOpen
 	0,
 	0,
 	SCREEN_WIDTH,
@@ -326,10 +326,10 @@ void Player::move(Tile *tiles[], Player& Player)
 void Player::render(int frame, int camPosX, int camPosY) {
 	//Render The Current Frame
 	SDL_Rect* currentClip = &SpriteClipsUp[frame / 6];
-	if (dir == 1)		SDL_Rect* currentClip = &SpriteClipsUp[frame / 6];
-	else if (dir == 2)	SDL_Rect* currentClip = &SpriteClipsRight[frame / 6];
-	else if (dir == 3)	SDL_Rect* currentClip = &SpriteClipsDown[frame / 6];
-	else if (dir == 4)	SDL_Rect* currentClip = &SpriteClipsLeft[frame / 6];
+	if (dir == 1)		currentClip = &SpriteClipsUp[frame / 6];
+	else if (dir == 2)	currentClip = &SpriteClipsRight[frame / 6];
+	else if (dir == 3)	currentClip = &SpriteClipsDown[frame / 6];
+	else if (dir == 4)	currentClip = &SpriteClipsLeft[frame / 6];
 	gPlayerTexture.render(
 			mPosX - camPosX,
 		       	mPosY - camPosY,
@@ -383,27 +383,31 @@ void Enemy::setCurrentHealth(int amt){ currentHealth = amt; }
 
 bool init()
 {
-	//Initialization flag
-	bool success = true;
-
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
 	{
-		printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
-		success = false;
+		printf(
+			"SDL could not initialize! SDL Error: %s\n", 
+			SDL_GetError()
+		);
+		return false;
 	}
 	else
 	{
 		//Set texture filtering to linear
 		if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
 		{
-			printf("Warning: Linear texture filtering not enabled!");
+			printf(
+				"Warning: Linear texture filtering not enabled!"
+			);
 		}
 
 		//Check for joysticks
 		if (SDL_NumJoysticks() < 1)
 		{
-			printf("Warning: No joysticks connected!\n");
+			printf(
+				"Warning: No joysticks connected!\n"
+			);
 		}
 		else
 		{
@@ -411,50 +415,79 @@ bool init()
 			gGameController = SDL_JoystickOpen(0);
 			if (gGameController == NULL)
 			{
-				printf("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
+				printf(
+					"Warning: Unable to open game controller! SDL Error: %s\n",
+					SDL_GetError()
+				);
 			}
 		}
 
-		//Create window
-		gWindow = SDL_CreateWindow("Eos", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-		if (gWindow == NULL)
+		gWindow = SDL_CreateWindow(	//Create The Window
+			"Eos",
+		       	SDL_WINDOWPOS_UNDEFINED, 
+			SDL_WINDOWPOS_UNDEFINED, 
+			SCREEN_WIDTH, 
+			SCREEN_HEIGHT, 
+			SDL_WINDOW_SHOWN
+		);
+		if (gWindow == NULL)	//Check if there was a problem with window creation
 		{
-			printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
-			success = false;
+			printf(
+				"Window could not be created! SDL Error: %s\n", 
+				SDL_GetError()
+			);
+			return false;
 		}
 		else
 		{
 			//Create renderer for window
-			gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+			gRenderer = SDL_CreateRenderer(
+				gWindow,
+			       	-1,
+			       	SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+			);
 			if (gRenderer == NULL)
 			{
-				printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
-				success = false;
+				printf(
+					"Renderer could not be created! SDL Error: %s\n", 
+					SDL_GetError()
+				);
+				return false;
 			}
 			else
 			{
-				//Initialize renderer color
-				SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+				SDL_SetRenderDrawColor(	//Initialize The Renderer Color
+					gRenderer,
+				       	0xFF,
+				       	0xFF, 
+					0xFF, 
+					0xFF
+				);
 
 				//Initialize PNG loading
 				int imgFlags = IMG_INIT_PNG;
 				if (!(IMG_Init(imgFlags) & imgFlags))
 				{
-					printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
-					success = false;
+					printf(
+						"SDL_image could not initialize! SDL_image Error: %s\n", 
+						IMG_GetError()
+					);
+					return false;
 				}
 
-				//Initialize SDL_ttf
-				if (TTF_Init() == -1)
+				if (TTF_Init() == -1)	//Initialize SDL_ttf
 				{
-					printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
-					success = false;
+					printf(
+						"SDL_ttf could not initialize! SDL_ttf Error: %s\n", 
+						TTF_GetError()
+					);
+					return false;
 				}
 			}
 		}
 	}
 
-	return success;
+	return true;
 }
 
 bool loadMedia(Tile* tiles[]) {
@@ -540,14 +573,17 @@ bool loadMedia(Tile* tiles[]) {
 	gFont = TTF_OpenFont("SDS_8x8.ttf", 18);
 	if (gFont == NULL)
 	{
-		printf("Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError());
+		printf(
+			"Failed to load lazy font! SDL_ttf Error: %s\n", 
+			TTF_GetError()
+		);
 		return false;
 	}
 	else
 	{
 		//Render text
 		SDL_Color textColor = { 255, 255, 255 };
-		if (!gTextTexture.loadFromRenderedText("The quick brown fox jumps over the lazy dog", textColor, gRenderer, gFont))
+		if (!gTextTexture.loadFromRenderedText("font", textColor, gRenderer, gFont))
 		{
 			printf("Failed to render text texture!\n");
 			return false;
@@ -686,25 +722,6 @@ bool loadMedia(Tile* tiles[]) {
 		SpriteClipsRight[5].h = 70;
 		//=======================================
 		//=======================================
-		SwordClipDown[0].x = 0;
-		SwordClipDown[0].y = 345;
-		SwordClipDown[0].w = 64;
-		SwordClipDown[0].h = 70;
-
-		SwordClipRight[0].x = 345;
-		SwordClipRight[0].y = 350;
-		SwordClipRight[0].w = 64;
-		SwordClipRight[0].h = 70;
-
-		SwordClipUp[0].x = 245;
-		SwordClipUp[0].y = 345;
-		SwordClipUp[0].w = 70;
-		SwordClipUp[0].h = 70;
-
-		SwordClipLeft[0].x = 111;
-		SwordClipLeft[0].y = 345;
-		SwordClipLeft[0].w = 64;
-		SwordClipLeft[0].h = 70;
 
 	}
 
@@ -771,7 +788,8 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 	if (leftA >= rightB)
 		return false;
 	//If none of the sides from A are outside B
-	return true; }
+	return true; 
+}
 
 //Checks collision box against set of tiles
 bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player){
@@ -824,9 +842,7 @@ bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player){
 		}
 
 		//If the tile is a wall type tile
-		if (	(tiles[i]->getType() >= TILE_CENTER) &&
-			(tiles[i]->getType() <= TILE_TOPLEFT)
-			)
+		if ((tiles[i]->getType() >= TILE_CENTER) && (tiles[i]->getType() <= TILE_TOPLEFT))
 		{
 			//If the collision box touches the wall tile
 			if (checkCollision(box, tiles[i]->getBox()))
@@ -1050,18 +1066,16 @@ Weapon genChestWeapon(int start, int end){
 	return newWeapon;
 }
 
-//This function will generate a simple weapon
-//that the player can either change to, or
-//just simply not
+/* OpeningChest Funcion
+ *	This function will generate a simple weapon
+ *	that the player can either change to, or
+ *	just simply not
+*/
 void openingChest(Weapon& playerWeapon, Weapon& chestWeapon){
-	SDL_SetRenderDrawColor(	//Clear Screen By Filling It White
-		gRenderer,
-	       	0x00,
-	       	0x00,
-	       	0x00,
-	       	0xFF
-	);
+	//Clear Screen By Filling It White
+	SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(gRenderer);
+
 	playerWeapon.render(	//Render The Player Weapon
 		SCREEN_WIDTH / 3, 
 		SCREEN_HEIGHT / 2.5
@@ -1076,17 +1090,14 @@ void openingChest(Weapon& playerWeapon, Weapon& chestWeapon){
 	SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
 	SDL_RenderFillRect(gRenderer, &weaponAtk);
 	gTextTexture.loadFromRenderedText("CHANGE", textColor, gRenderer, gFont);
-	//Render current frame
 	gTextTexture.render(125, 625, gRenderer);
-
 
 	SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, 0xFF);
 	SDL_RenderFillRect(gRenderer, &spellAtk);
 	gTextTexture.loadFromRenderedText("LEAVE", textColor, gRenderer, gFont);
-	//Render current frame
 	gTextTexture.render(625, 625, gRenderer);
 
-	std::string currentDamage = "PLAYER DAMAGE:" + std::to_string(Player.weapon.damage);
+	std::string currentDamage = "PLAYER DAMAGE:" + std::to_string(playerWeapon.damage);
 	gTextTexture.loadFromRenderedText(currentDamage, textColor, gRenderer, gFont);
 	gTextTexture.render(125, 225, gRenderer);
 	std::string chestDamage = "DAMAGE:" + std::to_string(chestWeapon.damage);
@@ -1094,6 +1105,10 @@ void openingChest(Weapon& playerWeapon, Weapon& chestWeapon){
 	gTextTexture.render(625, 225, gRenderer);	
 }
 
+/* Run
+ * 	This function is the man game loop and
+ * 	well, runs the main game.
+*/
 void run(){
 	if (!init())	//Start up SDL and create the window
 		printf("Failed to initialize!\n");
@@ -1148,8 +1163,8 @@ void run(){
 				20 
 			};
 			SDL_Rect forestArea3Exit1 = {
-			       	0,
-			       	0, 
+				0,
+				0, 
 				0,
 			       	0 
 			};	
@@ -1314,8 +1329,7 @@ void run(){
 
 				}
 				else if (isOpeningChest){
-					
-
+					openingChest(Player.weapon, chestWeapon);
 				}
 				else if (fighting){
 
