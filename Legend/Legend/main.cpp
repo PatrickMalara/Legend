@@ -13,6 +13,7 @@ const int LEVEL_WIDTH = 5760;
 const int LEVEL_HEIGHT = 6080;
 
 int dir = 0;
+int frame = 0;
 bool fighting = false;
 bool isOpeningChest = false;
 bool inDungen = false;
@@ -91,12 +92,14 @@ private:
 #pragma region Function Protoypes
 bool init();	//Starts up SDL and Creates Window
 bool loadMedia(Tile* tiles[] );	//Loads Media
-//Frees media and shuts down SDL
 void close(Tile* tiles[]); //Frees media and Shuts off SDL 
 bool checkCollision(SDL_Rect a, SDL_Rect b);
 bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player);	//Chesks collision box against tiles
 bool setTiles(Tile *tiles[]);	//Sets the tile map
 void loadMap(std::string mapName, Tile *tiles[]);	//Loads any map passed in arguments
+void openingChest(Weapon& playerWeapon, Weapon& chestWeapon);
+void fight(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon, bool forestDungeon1Enemy);
+void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon);
 #pragma endregion
 
 //The window we'll be rendering to
@@ -162,6 +165,53 @@ SDL_Rect openingChestScreen = {	//ChestOpen
 };
 #pragma endregion
 
+#pragma region forestlevel Warp Collliders and Chests
+bool forestArea2Chest = true;
+SDL_Rect chest = {
+	160,
+	5920,		
+	100,
+	100 
+};
+
+bool forestDungeon1Enemy = true;
+SDL_Rect forestDungeon1EnemyCollider = {
+	2960,
+	3600,
+	80,
+	80 
+};
+SDL_Rect forestArea1Exit1 = {
+	5100,		       	
+	40,
+	160, 	
+	20
+};
+SDL_Rect forestArea2Exit1 = { 
+	5240,
+	40,
+	320,
+	20 
+};
+SDL_Rect forestArea3Exit1 = {
+	0,
+	0, 
+	0,
+       	0 
+};	
+SDL_Rect forestArea3Dungeon = { 
+	5660, 
+	3440, 
+	100, 
+	100 
+};
+SDL_Rect forestArea3DungeonExit = { 
+	81,
+       	5980, 
+	160, 
+	40 
+};
+#pragma endregion
 
 LTimer timer;
 
@@ -1189,7 +1239,99 @@ void fight(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon, b
  * 	move around and interact with the world
 */
 void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon){
-	
+	//Move the Player
+	Player.move(tileSet, Player);
+
+	//Center the camera over the Player
+	camera.x = (Player.getPosX() + Player::Player_WIDTH / 2) - SCREEN_WIDTH / 2;
+	camera.y = (Player.getPosY() + Player::Player_HEIGHT / 2) - SCREEN_HEIGHT / 2;
+
+	//Keep the camera in bounds
+	if (camera.x < 0)
+		camera.x = 0;
+	if (camera.y < 0)
+		camera.y = 0;
+	if (camera.x > LEVEL_WIDTH - camera.w)
+		camera.x = LEVEL_WIDTH - camera.w;
+	if (camera.y > LEVEL_HEIGHT - camera.h)
+		camera.y = LEVEL_HEIGHT - camera.h;
+
+	//Clear screen by setting the background color to white
+	SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderClear(gRenderer);
+
+	//Render level
+	for (int i = 0; i < TOTAL_TILES; ++i)
+		tileSet[i]->render(camera);
+
+	if (AreaState == AREA::FOREST1){
+		if (checkCollision(forestArea1Exit1, Player.collider)){
+			loadMap("ForestArea2.map", tileSet);
+			Player.setPosY(5920);
+			Player.setPosX(81);
+			AreaState = AREA::FOREST2;
+		}
+	}
+	else if (AreaState == AREA::FOREST2){
+		if (checkCollision(forestArea2Exit1, Player.collider)){
+			loadMap("ForestArea3.map", tileSet);
+			Player.setPosY(5920);
+			Player.setPosX(3520);
+			AreaState = AREA::FOREST3;
+		}
+		if (forestArea2Chest){
+			//If the tile is on screen
+			if (checkCollision(camera, chest))
+			{
+				//Show the tile
+	gTileTexture.render(chest.x - camera.x, chest.y - camera.y, gRenderer, &TileClips[TILE_BOTTOMRIGHT]);
+			}
+			if (checkCollision(chest, Player.collider)){
+				isOpeningChest = true; 
+				chestWeapon = genChestWeapon(0, 2);
+				forestArea2Chest = false;
+			}
+		}
+	}
+	else if (AreaState == AREA::FORESTDUNGEON1){
+		
+		if (checkCollision(forestArea3DungeonExit, Player.collider)){
+			loadMap("ForestArea3.map", tileSet);
+			Player.setPosY(forestArea3Dungeon.y);
+			Player.setPosX(forestArea3Dungeon.x - 80);
+			AreaState = AREA::FOREST3;
+		}
+		if (forestDungeon1Enemy){
+			//If the tile is on screen
+			if (checkCollision(camera, forestDungeon1EnemyCollider))
+			{
+				//Show the tile
+				gEnemySprites.render(
+					forestDungeon1EnemyCollider.x - camera.x,
+				       	forestDungeon1EnemyCollider.y - camera.y,
+				       	gRenderer, 
+					&EnemySpritesClips[0]
+				);
+			}
+			if (checkCollision(forestDungeon1EnemyCollider, Player.collider)){
+				forestDungeon1Enemy = false;
+				enemy = genEnemy(7, 7, 7);
+				enemy.atkTimer.start();
+				fighting = true;
+			}
+		}
+	}
+	else if (AreaState == AREA::FOREST3){
+		if (checkCollision(forestArea3Dungeon, Player.collider)){
+			loadMap("ForestDungeon1.map", tileSet);
+			Player.setPosY(5900);
+			Player.setPosX(81);
+			forestDungeon1Enemy = true;
+			AreaState = AREA::FORESTDUNGEON1;
+		}
+	}
+	//Render objects
+	Player.render(frame, camera.x, camera.y);
 }
 
 /* Run
@@ -1220,56 +1362,8 @@ void run(){
 						//a new weapon was actually gener-
 						//ated.
 
-			SDL_Rect hitBox = { 0 };
+			SDL_Rect hitBox = { 0 };	
 
-			bool forestArea2Chest = true;
-			SDL_Rect chest = {
-				160,
-				5920,		
-				100,
-				100 
-			};
-#pragma region forestlevel Warp Collliders
-			bool forestDungeon1Enemy = true;
-			SDL_Rect forestDungeon1EnemyCollider = {
-				2960,
-				3600,
-				80,
-				80 
-			};
-			SDL_Rect forestArea1Exit1 = {
-				5100,		       	
-				40,
-				160, 	
-				20
-			};
-			SDL_Rect forestArea2Exit1 = { 
-				5240,
-				40,
-				320,
-				20 
-			};
-			SDL_Rect forestArea3Exit1 = {
-				0,
-				0, 
-				0,
-			       	0 
-			};	
-			SDL_Rect forestArea3Dungeon = { 
-				5660, 
-				3440, 
-				100, 
-				100 
-			};
-			SDL_Rect forestArea3DungeonExit = { 
-				81,
-			       	5980, 
-				160, 
-				40 
-			};
-#pragma endregion
-
-			int frame = 0;
 			SDL_Rect camera = {	//The Camera Area 
 				0,
 			       	0, 
@@ -1323,103 +1417,28 @@ void run(){
 					//Handle input for the Player
 					Player.handleEvent(e);
 				}
-				if (!fighting && !isOpeningChest){
-				
-					//Move the Player
-					Player.move(tileSet, Player);
-
-					//Center the camera over the Player
-					camera.x = (Player.getPosX() + Player::Player_WIDTH / 2) - SCREEN_WIDTH / 2;
-					camera.y = (Player.getPosY() + Player::Player_HEIGHT / 2) - SCREEN_HEIGHT / 2;
-
-					//Keep the camera in bounds
-					if (camera.x < 0)
-						camera.x = 0;
-					if (camera.y < 0)
-						camera.y = 0;
-					if (camera.x > LEVEL_WIDTH - camera.w)
-						camera.x = LEVEL_WIDTH - camera.w;
-					if (camera.y > LEVEL_HEIGHT - camera.h)
-						camera.y = LEVEL_HEIGHT - camera.h;
-
-					//Clear screen by setting the background color to white
-					SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
-					SDL_RenderClear(gRenderer);
-
-					//Render level
-					for (int i = 0; i < TOTAL_TILES; ++i)
-						tileSet[i]->render(camera);
-
-					if (AreaState == AREA::FOREST1){
-						if (checkCollision(forestArea1Exit1, Player.collider)){
-							loadMap("ForestArea2.map", tileSet);
-							Player.setPosY(5920);
-							Player.setPosX(81);
-							AreaState = AREA::FOREST2;
-						}
-					}
-					else if (AreaState == AREA::FOREST2){
-						if (checkCollision(forestArea2Exit1, Player.collider)){
-							loadMap("ForestArea3.map", tileSet);
-							Player.setPosY(5920);
-							Player.setPosX(3520);
-							AreaState = AREA::FOREST3;
-						}
-						if (forestArea2Chest){
-							//If the tile is on screen
-							if (checkCollision(camera, chest))
-							{
-								//Show the tile
-								gTileTexture.render(chest.x - camera.x, chest.y - camera.y, gRenderer, &TileClips[TILE_BOTTOMRIGHT]);
-							}
-							if (checkCollision(chest, Player.collider)){
-								isOpeningChest = true; 
-								chestWeapon = genChestWeapon(0, 2);
-								forestArea2Chest = false;
-							}
-						}
-					}
-					else if (AreaState == AREA::FORESTDUNGEON1){
-						
-						if (checkCollision(forestArea3DungeonExit, Player.collider)){
-							loadMap("ForestArea3.map", tileSet);
-							Player.setPosY(forestArea3Dungeon.y);
-							Player.setPosX(forestArea3Dungeon.x - 80);
-							AreaState = AREA::FOREST3;
-						}
-						if (forestDungeon1Enemy){
-							//If the tile is on screen
-							if (checkCollision(camera, forestDungeon1EnemyCollider))
-							{
-								//Show the tile
-								gEnemySprites.render(forestDungeon1EnemyCollider.x - camera.x, forestDungeon1EnemyCollider.y - camera.y, gRenderer, &EnemySpritesClips[0]);
-							}
-							if (checkCollision(forestDungeon1EnemyCollider, Player.collider)){
-								forestDungeon1Enemy = false;
-								enemy = genEnemy(7, 7, 7);
-								enemy.atkTimer.start();
-								fighting = true;
-							}
-						}
-					}
-					else if (AreaState == AREA::FOREST3){
-						if (checkCollision(forestArea3Dungeon, Player.collider)){
-							loadMap("ForestDungeon1.map", tileSet);
-							Player.setPosY(5900);
-							Player.setPosX(81);
-							forestDungeon1Enemy = true;
-							AreaState = AREA::FORESTDUNGEON1;
-						}
-					}
-					//Render objects
-					Player.render(frame, camera.x, camera.y);
-
+				if (!fighting && !isOpeningChest){			
+					world(
+						Player,
+						enemy,
+					       	camera,
+					       	chestWeapon
+					);
 				}
 				else if (isOpeningChest){
-					openingChest(Player.weapon, chestWeapon);
+					openingChest(
+						Player.weapon, 
+						chestWeapon
+					);
 				}
 				else if (fighting){
-					fight(Player, enemy, camera, chestWeapon, forestDungeon1Enemy);
+					fight(
+						Player, 
+						enemy,
+						camera,
+					       	chestWeapon, 
+						forestDungeon1Enemy
+					);
 				}
 
 				//Update screen
