@@ -862,6 +862,7 @@ bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player){
 					fightTime = rand() % 10 + 1;
 					std::cout << fightTime << std::endl;
 					timer.start();
+
 				}
 				else if (!inDungen){
 					Player.setPosX(1840);
@@ -1108,8 +1109,10 @@ Enemy genEnemy(int start, int end, int bossId = NULL){
 		newEnemy.isBoss = true;
 		newEnemy.imageID = bossId;
 	}
-	else
+	else {
+		bossId = false;
 		newEnemy.imageID = level;
+	}
 	newEnemy.damage = level * 4;
 	return newEnemy;
 }
@@ -1227,13 +1230,18 @@ void fight(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon, b
 			Player.levelUp();
 			Player.setXp(0);
 		}
-		isOpeningChest = true;
+		
 		chestWeapon = genChestWeapon(1, 2);
 		fighting = false;
-		if (enemy.isBoss == true)
+		if (enemy.isBoss == true){
 			forestDungeon1Enemy = false;	//TODO: Make The Enemies Be An Array of Bools
+			isOpeningChest = true;
+		}
 		timer.start();
-		fightTime = rand() % 10 + 1;
+		if(AreaState != AREA::FORESTDUNGEON1)
+			fightTime = rand() % 20 + 10;
+		else
+			fightTime = rand() % 10 + 5;
 	}
 
 	enemy.render(	//Rendering the enemy on the
@@ -1358,6 +1366,7 @@ void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon){
 		
 		if (checkCollision(forestArea3DungeonExit, Player.collider)){
 			loadMap("ForestArea3.map", tileSet);
+			fightTime = rand() % 20 + 10;
 			Player.setPosY(forestArea3Dungeon.y);
 			Player.setPosX(forestArea3Dungeon.x - 80);
 			AreaState = AREA::FOREST3;
@@ -1385,14 +1394,15 @@ void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon){
 	else if (AreaState == AREA::FOREST3){
 		if (checkCollision(forestArea3Dungeon, Player.collider)){
 			loadMap("ForestDungeon1.map", tileSet);
+			fightTime = rand() % 10 + 5;
 			Player.setPosY(5900);
 			Player.setPosX(81);
 			forestDungeon1Enemy = true;
 			AreaState = AREA::FORESTDUNGEON1;
 		}
 	}
-	//Render objects
-	Player.render(frame, camera.x, camera.y);
+	
+	Player.render(frame, camera.x, camera.y);	//Simply Render the Player
 }
 
 /* Run
@@ -1432,6 +1442,8 @@ void run(){
 				SCREEN_HEIGHT 
 			};
 			Enemy enemy;		
+			fightTime = rand() % 20 + 10;
+			timer.start();
 
 			//While application is running
 			while (!quit) {
@@ -1477,9 +1489,15 @@ void run(){
 				//Update screen
 				SDL_RenderPresent(gRenderer);
 
+				//When the Enemy Timer Ends Generate a random enemy
+				//using the genEnemy() function for the correct area
+				//state 
 				std::cout << timer.getTicks() / 1000.f << std::endl;
 				if (timer.getTicks() / 1000.f >= fightTime){
-					enemy = genEnemy(0, 4);
+					if (AreaState != AREA::FORESTDUNGEON1)
+						enemy = genEnemy(0, 4);
+					else if (AreaState == AREA::FORESTDUNGEON1)
+						enemy = genEnemy(5, 6);
 					enemy.atkTimer.start();
 					fighting = true; 
 					timer.stop();
