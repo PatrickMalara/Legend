@@ -850,51 +850,6 @@ bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player){
 	//Go through the tiles
 	for (int i = 0; i < TOTAL_TILES; ++i)
 	{	
-		//If the tile is stairs
-		if (tiles[i]->getType() == TILE_BLUE){
-			//If the collision box touches the wall tile
-			if (checkCollision(box, tiles[i]->getBox()))
-			{
-				inDungen = !inDungen;
-				if (inDungen){
-					Player.setPosX(1920);
-					Player.setPosY(2160);
-					fightTime = rand() % 10 + 1;
-					std::cout << fightTime << std::endl;
-					timer.start();
-
-				}
-				else if (!inDungen){
-					Player.setPosX(1840);
-					Player.setPosY(481);
-					timer.stop();
-				}
-				return false;
-			}
-		}
-
-		//If the tile is stairs
-		if (tiles[i]->getType() == TILE_TOPRIGHT){
-			//If the collision box touches the wall tile
-			if (checkCollision(box, tiles[i]->getBox()))
-			{
-				inDungen = !inDungen;
-				if (inDungen){
-					Player.setPosX(80);
-					Player.setPosY(2240);
-					fightTime = rand() % 10 + 1;
-					std::cout << fightTime << std::endl;
-					timer.start();
-				}
-				else if (!inDungen){
-					Player.setPosX(800);
-					Player.setPosY(561);
-					timer.stop();
-				}
-				return false;
-			}
-		}
-
 		//If the tile is a wall type tile
 		if ((tiles[i]->getType() >= TILE_CENTER) && (tiles[i]->getType() <= TILE_TOPLEFT))
 		{
@@ -904,8 +859,6 @@ bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player){
 				return true;
 			}
 		}
-
-		
 	}
 
 	//If no wall tiles were touched
