@@ -353,7 +353,9 @@ void Player::move(Tile *tiles[], Player& Player)
 	mPosX += mVelX;
 
 	//If the Player went too far to the left or right or touched a wall
-	if ((collider.x < 0) || (collider.x + Player_WIDTH > LEVEL_WIDTH) || touchesWall(collider, tiles, Player))
+	if (	(collider.x < 0) ||
+		(collider.x + Player_WIDTH > LEVEL_WIDTH) || 
+		touchesWall(collider, tiles, Player)	)
 	{
 		//move back
 		collider.x -= mVelX;
@@ -365,7 +367,9 @@ void Player::move(Tile *tiles[], Player& Player)
 	mPosY += mVelY;
 
 	//If the Player went too far up or down or touched a wall
-	if ((collider.y < 0) || (collider.y + Player_HEIGHT > LEVEL_HEIGHT) || touchesWall(collider, tiles, Player))
+	if (	(collider.y < 0) ||
+		(collider.y + Player_HEIGHT > LEVEL_HEIGHT) ||
+	       	touchesWall(collider, tiles, Player)	)
 	{
 		//move back
 		collider.y -= mVelY;
@@ -845,8 +849,7 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 bool touchesWall(SDL_Rect box, Tile* tiles[], Player& Player){
 	//Go through the tiles
 	for (int i = 0; i < TOTAL_TILES; ++i)
-	{
-		
+	{	
 		//If the tile is stairs
 		if (tiles[i]->getType() == TILE_BLUE){
 			//If the collision box touches the wall tile
@@ -1091,7 +1094,11 @@ void loadMap(std::string mapName, Tile* tiles[]){
 	map.close();
 }
 
-///Randomly generates an Enemy
+
+/*Enemy
+ *	This function randomly generates an 
+ *	enemy, and returns it.
+*/
 Enemy genEnemy(int start, int end, int bossId = NULL){
 	Enemy newEnemy;
 	newEnemy.setCurrentHealth(100);
@@ -1107,13 +1114,62 @@ Enemy genEnemy(int start, int end, int bossId = NULL){
 	return newEnemy;
 }
 
-///Randomly generates a weapon
+/*Weapon
+ *	This function randomly generates a 
+ *	weapon, and returns it.
+*/
 Weapon genChestWeapon(int start, int end){
 	Weapon newWeapon;
 	int level = rand() % end + start;
 	newWeapon.clip.y = level * 100;
 	newWeapon.damage = level * 10;
 	return newWeapon;
+}
+
+/*FightInputHandler
+ *	This function simply handles the input
+ *	from the fighting mode.
+*/
+void fightInputHandler(Player& Player, Enemy& enemy){
+	if (fighting){
+		///WeaponAtk
+		if (e.type == SDL_MOUSEBUTTONDOWN){
+			if (e.button.y > 600 && e.button.y < 700 && e.button.x < (SCREEN_WIDTH / 2)){
+				enemy.setCurrentHealth(enemy.getCurrentHealth() - Player.weapon.damage);
+				std::cout << "Weapon Atk: 10 dmg" << std::endl;
+				std::cout << "ENEMY HP: " << enemy.getCurrentHealth() << std::endl;
+			}
+		}
+		///SpellAtk
+		if (e.type == SDL_MOUSEBUTTONDOWN){
+			if (e.button.y > 600 && e.button.y < 700 && e.button.x >(SCREEN_WIDTH / 2)){
+				enemy.setCurrentHealth(enemy.getCurrentHealth() - 5);
+				std::cout << "Spell Atk: 10 dmg" << std::endl;
+				std::cout << "ENEMY HP: " << enemy.getCurrentHealth() << std::endl;
+			}
+		}
+	}
+}
+
+/*OpeningChestInputHandler
+ *	This function simply handles the input
+ *	from the Opening Chest mode.
+*/
+void OpeningChestInputHandler(Player& Player, Weapon& chestWeapon){
+	///CHANGE
+	if (e.type == SDL_MOUSEBUTTONDOWN){
+		if (e.button.y > 600 && e.button.y < 700 && e.button.x < (SCREEN_WIDTH / 2)){
+			Player.weapon = chestWeapon;
+			isOpeningChest = false;
+		}
+	}
+	///LEAVE
+	if (e.type == SDL_MOUSEBUTTONDOWN){
+		if (e.button.y > 600 && e.button.y < 700 && e.button.x >(SCREEN_WIDTH / 2)){
+		isOpeningChest = false;
+		}
+	}
+
 }
 
 /* OpeningChest Funcion
@@ -1284,7 +1340,12 @@ void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon){
 			if (checkCollision(camera, chest))
 			{
 				//Show the tile
-	gTileTexture.render(chest.x - camera.x, chest.y - camera.y, gRenderer, &TileClips[TILE_BOTTOMRIGHT]);
+				gTileTexture.render(
+					chest.x - camera.x,
+					chest.y - camera.y,
+					gRenderer,
+					&TileClips[TILE_BOTTOMRIGHT]
+				);
 			}
 			if (checkCollision(chest, Player.collider)){
 				isOpeningChest = true; 
@@ -1381,38 +1442,10 @@ void run(){
 						quit = true;
 
 					if (fighting){
-						///WeaponAtk
-						if (e.type == SDL_MOUSEBUTTONDOWN){
-							if (e.button.y > 600 && e.button.y < 700 && e.button.x < (SCREEN_WIDTH / 2)){
-								enemy.setCurrentHealth(enemy.getCurrentHealth() - Player.weapon.damage);
-								std::cout << "Weapon Atk: 10 dmg" << std::endl;
-								std::cout << "ENEMY HP: " << enemy.getCurrentHealth() << std::endl;
-							}
-						}
-						///SpellAtk
-						if (e.type == SDL_MOUSEBUTTONDOWN){
-							if (e.button.y > 600 && e.button.y < 700 && e.button.x >(SCREEN_WIDTH / 2)){
-								enemy.setCurrentHealth(enemy.getCurrentHealth() - 5);
-								std::cout << "Spell Atk: 10 dmg" << std::endl;
-								std::cout << "ENEMY HP: " << enemy.getCurrentHealth() << std::endl;
-							}
-
-						}
+						fightInputHandler(Player, enemy);
 					}
 					if (isOpeningChest){
-						///CHANGE
-						if (e.type == SDL_MOUSEBUTTONDOWN){
-							if (e.button.y > 600 && e.button.y < 700 && e.button.x < (SCREEN_WIDTH / 2)){
-								Player.weapon = chestWeapon;
-								isOpeningChest = false;
-							}
-						}
-						///LEAVE
-						if (e.type == SDL_MOUSEBUTTONDOWN){
-							if (e.button.y > 600 && e.button.y < 700 && e.button.x >(SCREEN_WIDTH / 2)){
-								isOpeningChest = false;
-							}
-						}
+						openingChestInputHandler(Player, chestWeapon);
 					}
 					//Handle input for the Player
 					Player.handleEvent(e);
