@@ -1130,7 +1130,7 @@ Weapon genChestWeapon(int start, int end){
  *	This function simply handles the input
  *	from the fighting mode.
 */
-void fightInputHandler(Player& Player, Enemy& enemy){
+void fightInputHandler(SDL_Event& e, Player& Player, Enemy& enemy){
 	if (fighting){
 		///WeaponAtk
 		if (e.type == SDL_MOUSEBUTTONDOWN){
@@ -1155,7 +1155,7 @@ void fightInputHandler(Player& Player, Enemy& enemy){
  *	This function simply handles the input
  *	from the Opening Chest mode.
 */
-void OpeningChestInputHandler(Player& Player, Weapon& chestWeapon){
+void openingChestInputHandler(SDL_Event& e,Player& Player, Weapon& chestWeapon){
 	///CHANGE
 	if (e.type == SDL_MOUSEBUTTONDOWN){
 		if (e.button.y > 600 && e.button.y < 700 && e.button.x < (SCREEN_WIDTH / 2)){
@@ -1442,10 +1442,10 @@ void run(){
 						quit = true;
 
 					if (fighting){
-						fightInputHandler(Player, enemy);
+						fightInputHandler(e, Player, enemy);
 					}
 					if (isOpeningChest){
-						openingChestInputHandler(Player, chestWeapon);
+						openingChestInputHandler(e, Player, chestWeapon);
 					}
 					//Handle input for the Player
 					Player.handleEvent(e);
@@ -1491,8 +1491,8 @@ void run(){
 			}
 		}
 		SDL_Delay(5000);
-		//Free resources and close SDL
-		close(tileSet);
+		
+		close(tileSet);	//Free resources and close SDL
 	}
 }
 
