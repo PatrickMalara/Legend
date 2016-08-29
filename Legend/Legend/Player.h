@@ -14,7 +14,7 @@ public:
 	static const int Player_HEIGHT = 64;
 
 	//Maximum axis velocity of the Player
-	static const int Player_VEL = 8;	//SHOULD BE 4 IN REALITY, BUT FOR TESTING I PUT 8
+	static const int Player_VEL = 4;	//SHOULD BE 4 IN REALITY, BUT FOR TESTING I PUT 8
 
 	//Initializes the variables
 	Player();

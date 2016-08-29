@@ -1117,12 +1117,21 @@ void openingChestInputHandler(SDL_Event& e,Player& Player, Weapon& chestWeapon){
 		if (e.button.y > 600 && e.button.y < 700 && e.button.x < (SCREEN_WIDTH / 2)){
 			Player.weapon = chestWeapon;
 			isOpeningChest = false;
+			timer.start();
+			if(AreaState != AREA::FORESTDUNGEON1)
+				fightTime = rand() % 20 + 10;
+			else
+				fightTime = rand() % 10 + 5;
 		}
 	}
 	///LEAVE
 	if (e.type == SDL_MOUSEBUTTONDOWN){
 		if (e.button.y > 600 && e.button.y < 700 && e.button.x >(SCREEN_WIDTH / 2)){
-		isOpeningChest = false;
+			isOpeningChest = false;
+			if(AreaState != AREA::FORESTDUNGEON1)
+				fightTime = rand() % 20 + 10;
+			else
+				fightTime = rand() % 10 + 5;
 		}
 	}
 
@@ -1290,12 +1299,15 @@ void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon){
 		}
 	}
 	else if (AreaState == AREA::FOREST2){
+
+		//The FOREST2 Warp Collider to GOTO FOREST3
 		if (checkCollision(forestArea2Exit1, Player.collider)){
 			loadMap("ForestArea3.map", tileSet);
 			Player.setPosY(5920);
 			Player.setPosX(3520);
 			AreaState = AREA::FOREST3;
 		}
+		//The FOREST2 Chest Collider
 		if (forestArea2Chest){
 			//If the tile is on screen
 			if (checkCollision(camera, chest))
@@ -1309,11 +1321,13 @@ void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon){
 				);
 			}
 			if (checkCollision(chest, Player.collider)){
-				isOpeningChest = true; 
+				isOpeningChest = true;
+				timer.stop();	
 				chestWeapon = genChestWeapon(0, 2);
 				forestArea2Chest = false;
 			}
 		}
+
 	}
 	else if (AreaState == AREA::FORESTDUNGEON1){
 		
@@ -1328,7 +1342,7 @@ void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon){
 			//If the tile is on screen
 			if (checkCollision(camera, forestDungeon1EnemyCollider))
 			{
-				//Show the tile
+				//Show The Boss Sprite
 				gEnemySprites.render(
 					forestDungeon1EnemyCollider.x - camera.x,
 				       	forestDungeon1EnemyCollider.y - camera.y,
@@ -1412,8 +1426,8 @@ void run(){
 					if (isOpeningChest){
 						openingChestInputHandler(e, Player, chestWeapon);
 					}
-					//Handle input for the Player
-					Player.handleEvent(e);
+
+					Player.handleEvent(e);	//Handle Input for the Player
 				}
 				if (!fighting && !isOpeningChest){			
 					world(
@@ -1450,7 +1464,7 @@ void run(){
 					if (AreaState != AREA::FORESTDUNGEON1)
 						enemy = genEnemy(0, 4);
 					else if (AreaState == AREA::FORESTDUNGEON1)
-						enemy = genEnemy(5, 6);
+						enemy = genEnemy(4, 6);
 					enemy.atkTimer.start();
 					fighting = true; 
 					timer.stop();
@@ -1461,7 +1475,7 @@ void run(){
 				if (frame / 6 >= WALKING_ANIMATION_FRAMES) frame = 0;
 			}
 		}
-		SDL_Delay(5000);
+		SDL_Delay(3000);
 		
 		close(tileSet);	//Free resources and close SDL
 	}
