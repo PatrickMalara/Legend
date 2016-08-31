@@ -1,4 +1,3 @@
-
 // Using SDL, SDL_image, standard IO, strings, and file streams
 #include "LTexture.h"
 #include "LTimer.h"
@@ -100,6 +99,7 @@ void loadMap(std::string mapName, Tile *tiles[]);	//Loads any map passed in argu
 void openingChest(Weapon& playerWeapon, Weapon& chestWeapon);
 void fight(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon, bool forestDungeon1Enemy);
 void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon);
+int randNum(int start, int end);
 #pragma endregion
 
 //The window we'll be rendering to
@@ -1047,7 +1047,10 @@ void loadMap(std::string mapName, Tile* tiles[]){
 	//Close the file
 	map.close();
 }
-
+/*Random Number
+ *	Generates a random number.
+*/
+int randNum(int start, int end){return start + ( std::rand() % ( end - start + 1 ) ); }
 
 /*Enemy
  *	This function randomly generates an 
@@ -1057,7 +1060,8 @@ Enemy genEnemy(int start, int end, int bossId = NULL){
 	Enemy newEnemy;
 	newEnemy.setCurrentHealth(100);
 	newEnemy.atkTime = 1;
-	int level = rand() % end + start;
+	int level = randNum(start, end);
+	
 	if (bossId != NULL){
 		newEnemy.isBoss = true;
 		newEnemy.imageID = bossId;
@@ -1076,7 +1080,7 @@ Enemy genEnemy(int start, int end, int bossId = NULL){
 */
 Weapon genChestWeapon(int start, int end){
 	Weapon newWeapon;
-	int level = rand() % end + start;
+	int level = randNum(start, end);
 	newWeapon.clip.y = level * 100;
 	newWeapon.damage = level * 10;
 	return newWeapon;
@@ -1119,9 +1123,9 @@ void openingChestInputHandler(SDL_Event& e,Player& Player, Weapon& chestWeapon){
 			isOpeningChest = false;
 			timer.start();
 			if(AreaState != AREA::FORESTDUNGEON1)
-				fightTime = rand() % 20 + 10;
+				fightTime = randNum(10, 20);
 			else
-				fightTime = rand() % 10 + 5;
+				fightTime = randNum(5, 10);	
 		}
 	}
 	///LEAVE
@@ -1129,9 +1133,9 @@ void openingChestInputHandler(SDL_Event& e,Player& Player, Weapon& chestWeapon){
 		if (e.button.y > 600 && e.button.y < 700 && e.button.x >(SCREEN_WIDTH / 2)){
 			isOpeningChest = false;
 			if(AreaState != AREA::FORESTDUNGEON1)
-				fightTime = rand() % 20 + 10;
+				fightTime = randNum(10, 20);
 			else
-				fightTime = rand() % 10 + 5;
+				fightTime = randNum(5, 10);
 		}
 	}
 
@@ -1201,9 +1205,9 @@ void fight(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon, b
 		}
 		timer.start();
 		if(AreaState != AREA::FORESTDUNGEON1)
-			fightTime = rand() % 20 + 10;
+			fightTime = randNum(10, 20);
 		else
-			fightTime = rand() % 10 + 5;
+			fightTime = randNum(5, 10);
 	}
 
 	enemy.render(	//Rendering the enemy on the
@@ -1361,7 +1365,7 @@ void world(Player& Player, Enemy& enemy, SDL_Rect camera, Weapon& chestWeapon){
 	else if (AreaState == AREA::FOREST3){
 		if (checkCollision(forestArea3Dungeon, Player.collider)){
 			loadMap("ForestDungeon1.map", tileSet);
-			fightTime = rand() % 10 + 5;
+			fightTime = randNum(5, 10);
 			Player.setPosY(5900);
 			Player.setPosX(81);
 			forestDungeon1Enemy = true;
@@ -1464,7 +1468,7 @@ void run(){
 					if (AreaState != AREA::FORESTDUNGEON1)
 						enemy = genEnemy(0, 4);
 					else if (AreaState == AREA::FORESTDUNGEON1)
-						enemy = genEnemy(4, 6);
+						enemy = genEnemy(5, 6);
 					enemy.atkTimer.start();
 					fighting = true; 
 					timer.stop();
